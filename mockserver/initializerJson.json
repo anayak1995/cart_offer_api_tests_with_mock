@@ -1,0 +1,45 @@
+[
+  {
+    "httpRequest": {
+      "method": "GET",
+      "path": "/api/v1/user_segment",
+      "queryStringParameters": { "user_id": ["1"] }
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "body": "{\"segment\": \"p1\"}"
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "GET",
+      "path": "/api/v1/user_segment",
+      "queryStringParameters": { "user_id": ["2"] }
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "body": "{\"segment\": \"p2\"}"
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "GET",
+      "path": "/api/v1/user_segment",
+      "queryStringParameters": { "user_id": ["3"] }
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "body": "{\"segment\": \"p3\"}"
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "GET",
+      "path": "/api/v1/user_segment"
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "body": "[]"
+    }
+  }
+]
