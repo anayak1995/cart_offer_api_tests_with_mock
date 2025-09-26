@@ -1,69 +1,137 @@
-TCID,Description,Endpoint,API Module,Test Type,Test Level,Preconditions,Test Data,Expected Output
-TC001,Add FLAT amount offer for segment p1,/api/v1/offer,Setup Offers,UNIT,SANITY,Restaurant 1 exists,"curl -X POST http://localhost:8080/api/v1/offer -H 'Content-Type: application/json' -d '{
-  ""restaurant_id"": 1,
+TestCaseID,Category,Priority,Title,Offer setup,Input,ExpectedOutput
+TC_001,UNIT,HIGH,Apply flat amount offer,"User segment p1 with flat ?10 offer exists
+
+curl --location 'http://localhost:9001/api/v1/offer' \
+--header 'Content-Type: application/json' \
+--data '{
+  ""restaurant_id"": 101,
   ""offer_type"": ""FLATX"",
   ""offer_value"": 10,
   ""customer_segment"": [""p1""]
+}'","curl -X POST /api/v1/cart/apply_offer -H 'Content-Type: application/json' -d '{
+  ""cart_value"": 200,
+  ""user_id"": 1,
+  ""restaurant_id"": 101
 }'","{
-  ""response_msg"": ""success""
+  ""cart_value"": 190
 }"
-TC002,Add FLAT percentage offer for segment p2,/api/v1/offer,Setup Offers,UNIT,SANITY,Restaurant 1 exists,"curl -X POST http://localhost:8080/api/v1/offer -H 'Content-Type: application/json' -d '{
-  ""restaurant_id"": 1,
-  ""offer_type"": ""FLATX%"",
-  ""offer_value"": 10,
-  ""customer_segment"": [""p2""]
-}'","{
-  ""response_msg"": ""success""
-}"
-TC003,Add multiple offers for different segments,/api/v1/offer,Setup Offers,UNIT,SANITY,Restaurant 1 exists,"curl -X POST http://localhost:8080/api/v1/offer -H 'Content-Type: application/json' -d '{
-  ""restaurant_id"": 1,
-  ""offer_type"": ""FLATX"",
-  ""offer_value"": 10,
-  ""customer_segment"": [""p1"",""p2""]
-}'","{
-  ""response_msg"": ""success""
-}"
-TC004,Fetch user segment for valid user id 1,/api/v1/user_segment,Setup Offers,UNIT,SANITY,User 1 exists,curl -X GET http://localhost:8080/api/v1/user_segment?user_id=1,"{
-  ""segment"": ""p1""
-}"
-NTC001,Add offer with invalid restaurant_id,/api/v1/offer,Setup Offers,UNIT,REGRESSION,Restaurant does not exist,"curl -X POST http://localhost:8080/api/v1/offer -H 'Content-Type: application/json' -d '{
-  ""restaurant_id"": 999,
-  ""offer_type"": ""FLATX"",
-  ""offer_value"": 10,
+TC_002,UNIT,HIGH,Apply flat percentage offer,"User segment p1 with flat 10% offer exists
+
+curl --location 'http://localhost:9001/api/v1/offer' \
+--header 'Content-Type: application/json' \
+--data '{
+  ""restaurant_id"": 102,
+  ""offer_type"": ""PERCENTAGE"",
+  ""offer_value"": 20,
   ""customer_segment"": [""p1""]
+}'","curl -X POST /api/v1/cart/apply_offer -H 'Content-Type: application/json' -d '{
+  ""cart_value"": 200,
+  ""user_id"": 1,
+  ""restaurant_id"": 102
 }'","{
-  ""error_msg"": ""Restaurant not found"",
-  ""status"": 404
+  ""cart_value"": 160
 }"
-NTC002,Add offer with invalid offer_type,/api/v1/offer,Setup Offers,UNIT,REGRESSION,Restaurant 1 exists,"curl -X POST http://localhost:8080/api/v1/offer -H 'Content-Type: application/json' -d '{
-  ""restaurant_id"": 1,
-  ""offer_type"": ""INVALID_TYPE"",
-  ""offer_value"": 10,
-  ""customer_segment"": [""p1""]
-}'","{
-  ""error_msg"": ""Invalid offer type"",
-  ""status"": 400
-}"
-NTC003,Fetch user segment for invalid user id,/api/v1/user_segment,Setup Offers,UNIT,REGRESSION,User 999 does not exist,curl -X GET http://localhost:8080/api/v1/user_segment?user_id=999,"{
-  ""error_msg"": ""User not found"",
-  ""status"": 404
-}"
-NTC004,Fetch user segment with missing user id,/api/v1/user_segment,Setup Offers,UNIT,REGRESSION,No user_id provided,curl -X GET http://localhost:8080/api/v1/user_segment,"{
-  ""error_msg"": ""Missing user_id"",
-  ""status"": 400
-}"
-TC005,Apply FLAT amount offer for segment p1 on cart,/api/v1/cart/apply_offer,Apply Offers on Cart,INTEGRATION,SANITY,User 1 segment p1; Restaurant 1 has FLATX offer,"curl -X POST http://localhost:8080/api/v1/cart/apply_offer -H 'Content-Type: application/json' -d '{
+TC_003,UNIT,HIGH,No offer available for user,"Users for segment p2 exists but, not segment configured is not configured on any of the restaurant","curl -X POST /api/v1/cart/apply_offer -H 'Content-Type: application/json' -d '{
   ""cart_value"": 200,
   ""user_id"": 1,
   ""restaurant_id"": 1
 }'","{
+  ""cart_value"": 200
+}"
+TC_004,UNIT,MEDIUM,Offer value greater than cart value,User segment p1 with flat 10 offer,"curl -X POST /api/v1/cart/apply_offer -H 'Content-Type: application/json' -d '{
+  ""cart_value"": 5,
+  ""user_id"": 1,
+  ""restaurant_id"": 101
+}'","{
+  ""cart_value"": -5
+}"
+TC_005,UNIT,MEDIUM,Zero cart value with flat amount offer,User segment p1 with flat ?10 offer,"curl -X POST /api/v1/cart/apply_offer -H 'Content-Type: application/json' -d '{
+  ""cart_value"": 0,
+  ""user_id"": 1,
+  ""restaurant_id"": 101
+}'","{
+  ""cart_value"": -10
+}"
+TC_006,UNIT,MEDIUM,Zero cart value with percentage offer,User segment p1 with 10% offer,"curl -X POST /api/v1/cart/apply_offer -H 'Content-Type: application/json' -d '{
+  ""cart_value"": 0,
+  ""user_id"": 1,
+  ""restaurant_id"": 101
+}'","{
+  ""cart_value"": -10
+}"
+TC_007,REGRESSION,HIGH,Apply offer when multiple offers exist for same segment,"curl --location 'http://localhost:9001/api/v1/offer' \
+--header 'Content-Type: application/json' \
+--data '{
+  ""restaurant_id"": 107,
+  ""offer_type"": ""FLATX"",
+  ""offer_value"": 10,
+  ""customer_segment"": [""p1""]
+}'
+
+
+
+curl --location 'http://localhost:9001/api/v1/offer' \
+--header 'Content-Type: application/json' \
+--data '{
+  ""restaurant_id"": 107,
+  ""offer_type"": ""PERCENTAGE"",
+  ""offer_value"": 10,
+  ""customer_segment"": [""p1""]
+}'","curl -X POST /api/v1/cart/apply_offer -H 'Content-Type: application/json' -d '{
+  ""cart_value"": 200,
+  ""user_id"": 1,
+  ""restaurant_id"": 1
+}'","First added offer should be applied.
+
+{
   ""cart_value"": 190
 }"
-TC006,Apply FLAT percentage offer for segment p2 on cart,/api/v1/cart/apply_offer,Apply Offers on Cart,INTEGRATION,SANITY,User 2 segment p2; Restaurant 1 has FLATX% offer,"curl -X POST http://localhost:8080/api/v1/cart/apply_offer -H 'Content-Type: application/json' -d '{
-  ""cart_value"": 500,
-  ""user_id"": 2,
-  ""restaurant_id"": 1
+TC_009,REGRESSION,MEDIUM,Apply percentage offer with fractional discount,"curl --location 'http://localhost:9001/api/v1/offer' \
+--header 'Content-Type: application/json' \
+--data '{
+  ""restaurant_id"": 114,
+  ""offer_type"": ""PERCENTAGE"",
+  ""offer_value"": 33.5,
+  ""customer_segment"": [""p1""]
+}'","curl --location 'http://localhost:9001/api/v1/cart/apply_offer' \
+--header 'Content-Type: application/json' \
+--data '{
+  ""cart_value"": 100,
+  ""restaurant_id"": 114,
+  ""user_id"": 1
 }'","{
-  ""cart_value"": 450
+  ""cart_value"": 67
 }"
-...,,,,,,,,
+TC_010,REGRESSION,HIGH,Restaurant without offers configured,"Users segment ? p3 exists 
+Restarurant ? 115
+
+but, segment is not configured","curl -X POST /api/v1/cart/apply_offer -H 'Content-Type: application/json' -d '{
+  ""cart_value"": 250,
+  ""user_id"": 1,
+  ""restaurant_id"": 999
+}'","{
+  ""cart_value"": 250
+}"
+TC_011,REGRESSION,HIGH,Invalid restaurant id,restaurant_id = 1011,"curl -X POST /api/v1/cart/apply_offer -H 'Content-Type: application/json' -d '{
+  ""cart_value"": 100,
+  ""user_id"": 1,
+  ""restaurant_id"": 1011
+}'",No discount applied
+TC_012,REGRESSION,HIGH,Invalid user id,"user id which is not mapped in user segment mock service.
+Eg: user_id = 999","curl -X POST /api/v1/cart/apply_offer -H 'Content-Type: application/json' -d '{
+  ""cart_value"": 200,
+  ""user_id"": 999,
+  ""restaurant_id"": 1
+}'",No discount applied
+TC_013,REGRESSION,HIGH,Restaurant id is not passed,Restaurant id is not passed,"curl --location 'http://localhost:9001/api/v1/cart/apply_offer' \
+--header 'Content-Type: application/json' \
+--data '{
+  ""cart_value"": 100,
+  ""user_id"": 1
+}'",No discount applied
+TC_014,REGRESSION,HIGH,User id is not passed,User id is not passed,"curl --location 'http://localhost:9001/api/v1/cart/apply_offer' \
+--header 'Content-Type: application/json' \
+--data '{
+  ""cart_value"": 100,
+  ""restaurant_id"": 114
+}'",No discount applied
